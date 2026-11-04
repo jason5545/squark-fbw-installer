@@ -25,11 +25,68 @@ const possibleBasePaths: Record<TypeOfSimulator, { store: string; steam: string;
   },
 };
 
+const steamAppIds: Record<TypeOfSimulator, string> = {
+  msfs2020: '1250410',
+  msfs2024: '2537590',
+};
+
+const roamingDirNames: Record<TypeOfSimulator, string> = {
+  msfs2020: 'Microsoft Flight Simulator',
+  msfs2024: 'Microsoft Flight Simulator 2024',
+};
+
+/**
+ * macOS (Squark / Wine): Steam lives in ~/Library/Application Support/Steam and keeps one compat prefix per game
+ * under <library>/steamapps/compatdata/<appid>/pfx. Every Steam library listed in libraryfolders.vdf is checked.
+ */
+const macSteamLibraries = (): string[] => {
+  const steamRoot = path.join(Directories.home(), 'Library', 'Application Support', 'Steam');
+  const libraries = [steamRoot];
+
+  try {
+    const vdf = fs.readFileSync(path.join(steamRoot, 'steamapps', 'libraryfolders.vdf'), 'utf8');
+    for (const match of vdf.matchAll(/"path"\s+"([^"]+)"/g)) {
+      libraries.push(match[1].replace(/\\\\/g, '\\'));
+    }
+  } catch (e) {
+    // No libraryfolders.vdf: only the default library exists
+  }
+
+  return [...new Set(libraries)];
+};
+
+const macDriveC = (sim: TypeOfSimulator): string | null => {
+  for (const library of macSteamLibraries()) {
+    const driveC = path.join(library, 'steamapps', 'compatdata', steamAppIds[sim], 'pfx', 'drive_c');
+    if (fs.existsSync(driveC)) {
+      return driveC;
+    }
+  }
+
+  return null;
+};
+
+/** The drive_c directory of the Wine prefix that contains `p`, or null when `p` is not inside a prefix. */
+const driveCContaining = (p: string): string | null => {
+  const marker = `${path.sep}drive_c`;
+  const index = p.indexOf(marker + path.sep);
+  if (index !== -1) {
+    return p.slice(0, index + marker.length);
+  }
+  return p.endsWith(marker) ? p : null;
+};
+
 const basePathCache: Record<string, string | null> = {};
 
 export const msfsBasePath = (sim: TypeOfSimulator): string | null => {
   if (basePathCache[sim] !== undefined) {
     return basePathCache[sim];
+  }
+
+  if (os.platform().toString() === 'darwin') {
+    const driveC = macDriveC(sim);
+    const basePath = driveC && path.join(driveC, 'users', 'steamuser', 'AppData', 'Roaming', roamingDirNames[sim]);
+    return (basePathCache[sim] = basePath && fs.existsSync(basePath) ? basePath : null);
   }
 
   if (os.platform().toString() === 'linux') {
@@ -81,6 +138,15 @@ export const defaultCommunityDir = (msfsBase: string | null): string | null => {
     // Intentional space after InstalledPackagesPath to ensure not matching the InstalledPackagesPathNextBoot property added in MSFS2024 SU2.
     const packagesPathLine = msfsConfigLines.find((line) => line.includes('InstalledPackagesPath '));
     let communityDir = path.join(packagesPathLine.split(' ').slice(1).join(' ').replaceAll('"', ''), '\\Community');
+
+    if (os.platform().toString() === 'darwin') {
+      // UserCfg.opt holds a Windows path (C:\users\steamuser\...); map C: onto the prefix's drive_c
+      const driveC = driveCContaining(msfsBase);
+      if (!driveC) {
+        return (communityDirCache[msfsBase] = null);
+      }
+      communityDir = path.normalize(communityDir.replaceAll('\\', '/').replace(/^[A-Za-z]:\//, `${driveC}/`));
+    }
 
     if (os.platform().toString() === 'linux') {
       if (msfsBase === possibleBasePaths.msfs2020.linuxSteam) {

@@ -1,4 +1,3 @@
-import os from 'os';
 import React, { FC } from 'react';
 import { InstallStatus, InstallStatusCategories } from 'renderer/components/AddonSection/Enums';
 import { useAppSelector } from 'renderer/redux/store';
@@ -7,6 +6,7 @@ import { InstallingDependencyInstallState, InstallState } from 'renderer/redux/f
 import { DownloadItem } from 'renderer/redux/types';
 import { Activity, Download, Gear, Stopwatch, WifiOff, XOctagon } from 'react-bootstrap-icons';
 import { BackgroundServices } from 'renderer/utils/BackgroundServices';
+import { isCompatHost } from 'renderer/utils/Platform';
 import { Button, ButtonType } from 'renderer/components/Button';
 import { PromptModal, useModals } from 'renderer/components/Modal';
 import { AutostartDialog } from 'renderer/components/Modal/AutostartDialog';
@@ -134,7 +134,7 @@ const BackgroundServiceBanner: FC<BackgroundServiceBannerProps> = ({ publisher, 
           </div>
 
           <div className="flex items-center gap-x-14">
-            {(addon.backgroundService.enableAutostartConfiguration ?? true) && os.platform() !== 'linux' && (
+            {(addon.backgroundService.enableAutostartConfiguration ?? true) && !isCompatHost() && (
               <span
                 className="flex cursor-pointer items-center gap-x-3.5 text-3xl text-quasi-white hover:text-cyan"
                 onClick={handleClickAutostart}
@@ -144,14 +144,14 @@ const BackgroundServiceBanner: FC<BackgroundServiceBannerProps> = ({ publisher, 
               </span>
             )}
 
-            {os.platform() !== 'linux' && (
+            {!isCompatHost() && (
               <Button className="w-64" type={ButtonType.Neutral} onClick={handleStartStop}>
                 {isRunning ? 'Stop' : 'Start'}
               </Button>
             )}
-            {os.platform() === 'linux' && (
+            {isCompatHost() && (
               <span className="flex items-center gap-x-3.5 text-3xl text-quasi-white">
-                {isRunning ? 'Stop manually' : 'Start manually (e.g. Steam Proton)'}
+                {isRunning ? 'Stop manually' : 'Start manually (e.g. Steam Proton / Squark)'}
               </span>
             )}
           </div>

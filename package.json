@@ -29,7 +29,8 @@
     "package:snap": "npm run build && electron-builder --config electron-builder-snap.yml --linux snap --publish=never",
     "package:flatpak": "npm run build && electron-builder --config electron-builder-flatpak.yml --linux flatpak --publish=never",
     "lint": "eslint --ext .ts,.tsx .",
-    "lint:fix": "eslint --fix --ext .ts,.tsx ."
+    "lint:fix": "eslint --fix --ext .ts,.tsx .",
+    "package:mac": "npm run build && electron-builder --mac dir --arm64 --publish=never"
   },
   "keywords": [],
   "build": {
@@ -83,6 +84,23 @@
       ],
       "category": "Utility",
       "artifactName": "FlyByWire-Installer-${version}-${arch}.${ext}"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dir",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "build/icons/fbw-installer-512x512.png",
+      "category": "public.app-category.utilities",
+      "files": [
+        "out/**/*"
+      ],
+      "artifactName": "FlyByWire-Installer-${version}-${arch}.${ext}",
+      "hardenedRuntime": true
     }
   },
   "devDependencies": {

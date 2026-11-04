@@ -57,9 +57,11 @@ export const errorConfig = (
     description: (
       <>
         {"We couldn't determine the correct MSFS 2020 base path. Please select it manually."} <br />
-        {platform === 'linux'
-          ? 'Usually: ~/.local/share/Steam/steamapps/compatdata/1250410/pfx/drive_c/users/steamuser/AppData/Roaming/Microsoft Flight Simulator'
-          : 'Usually: "%LOCALAPPDATA%\\Packages\\Microsoft.FlightSimulator_8wekyb3d8bbwe\\LocalCache"'}
+        {platform === 'darwin'
+          ? 'Usually (Squark): ~/Library/Application Support/Steam/steamapps/compatdata/1250410/pfx/drive_c/users/steamuser/AppData/Roaming/Microsoft Flight Simulator'
+          : platform === 'linux'
+            ? 'Usually: ~/.local/share/Steam/steamapps/compatdata/1250410/pfx/drive_c/users/steamuser/AppData/Roaming/Microsoft Flight Simulator'
+            : 'Usually: "%LOCALAPPDATA%\\Packages\\Microsoft.FlightSimulator_8wekyb3d8bbwe\\LocalCache"'}
       </>
     ),
     actions: (
@@ -79,9 +81,11 @@ export const errorConfig = (
     description: (
       <>
         {"We couldn't determine the correct MSFS 2024 base path. Please select it manually."} <br />
-        {platform === 'linux'
-          ? 'You can usually find it somewhere here:\n~/.local/share/Steam/steamapps/compatdata/2537590/pfx/drive_c/users/steamuser/AppData/Roaming/Microsoft Flight Simulator 2024/'
-          : 'You can usually find it somewhere here:\n"%LOCALAPPDATA%\\Packages\\Microsoft.Limitless_8wekyb3d8bbwe\\LocalCache"'}
+        {platform === 'darwin'
+          ? 'You can usually find it somewhere here (Squark):\n~/Library/Application Support/Steam/steamapps/compatdata/2537590/pfx/drive_c/users/steamuser/AppData/Roaming/Microsoft Flight Simulator 2024/'
+          : platform === 'linux'
+            ? 'You can usually find it somewhere here:\n~/.local/share/Steam/steamapps/compatdata/2537590/pfx/drive_c/users/steamuser/AppData/Roaming/Microsoft Flight Simulator 2024/'
+            : 'You can usually find it somewhere here:\n"%LOCALAPPDATA%\\Packages\\Microsoft.Limitless_8wekyb3d8bbwe\\LocalCache"'}
       </>
     ),
     actions: (
